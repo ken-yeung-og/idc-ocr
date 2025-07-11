@@ -1,6 +1,6 @@
 # IDC OCR Document Processing System
 
-A serverless document processing system that automatically extracts text from uploaded documents and generates AI-powered summaries using AWS services.
+A document processing system that automatically extracts text from uploaded documents and generates AI-powered summaries using AWS services.
 
 ## Architecture Overview
 
