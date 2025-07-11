@@ -141,22 +141,15 @@ resource "aws_iam_role_policy" "lambda_policy" {
         Effect = "Allow"
         Action = [
           "bedrock:InvokeModel",
-          "bedrock:InvokeModelWithResponseStream"
+          "bedrock:InvokeModelWithResponseStream",
+          "bedrock:GetFoundationModel",
+          "bedrock:ListFoundationModels"
         ]
         Resource = [
           "arn:aws:bedrock:${var.aws_region}::foundation-model/${var.bedrock_model_id}",
-          "arn:aws:bedrock:${var.aws_region}::foundation-model/*"
+          "arn:aws:bedrock:${var.aws_region}::foundation-model/*",
+          "arn:aws:bedrock:${var.aws_region}::foundation-model/anthropic.claude-3-sonnet-20240229-v1:0"
         ]
-      },
-      {
-        Effect = "Allow"
-        Action = [
-          "textract:DetectDocumentText",
-          "textract:AnalyzeDocument",
-          "textract:StartDocumentAnalysis",
-          "textract:GetDocumentAnalysis"
-        ]
-        Resource = "*"
       }
     ]
   })

@@ -41,7 +41,7 @@ variable "lambda_function_name" {
 }
 
 variable "bedrock_model_id" {
-  description = "Bedrock model ID for document processing and summarization"
+  description = "Bedrock model ID for document summarization (Data automation uses Claude 3 Sonnet)"
   type        = string
   default     = "anthropic.claude-3-haiku-20240307-v1:0"
 }

@@ -17,7 +17,7 @@ logger.setLevel(logging.INFO)
 s3_client = boto3.client('s3')
 dynamodb = boto3.resource('dynamodb')
 bedrock_client = boto3.client('bedrock-runtime')
-textract_client = boto3.client('textract')
+bedrock_agent_client = boto3.client('bedrock-agent-runtime')
 
 # Environment variables
 DYNAMODB_TABLE_NAME = os.environ['DYNAMODB_TABLE_NAME']
@@ -166,7 +166,7 @@ def get_document_metadata(bucket: str, key: str) -> Dict[str, Any]:
 
 def extract_text_from_document(bucket: str, key: str) -> str:
     """
-    Extract text from document using AWS Textract.
+    Extract text from document using AWS Bedrock Data Automation.
     
     Args:
         bucket: S3 bucket name
@@ -182,8 +182,8 @@ def extract_text_from_document(bucket: str, key: str) -> str:
         file_extension = key.lower().split('.')[-1]
         
         if file_extension in ['pdf', 'png', 'jpg', 'jpeg', 'tiff', 'gif', 'bmp']:
-            # Use Textract for image and PDF files
-            return extract_text_with_textract(bucket, key)
+            # Use Bedrock Data Automation for image and PDF files
+            return extract_text_with_bedrock_data_automation(bucket, key)
         else:
             # For other file types, try to read directly
             return extract_text_directly(bucket, key)
@@ -193,9 +193,9 @@ def extract_text_from_document(bucket: str, key: str) -> str:
         return f"Error extracting text: {str(e)}"
 
 
-def extract_text_with_textract(bucket: str, key: str) -> str:
+def extract_text_with_bedrock_data_automation(bucket: str, key: str) -> str:
     """
-    Extract text using AWS Textract.
+    Extract text using AWS Bedrock Data Automation.
     
     Args:
         bucket: S3 bucket name
@@ -205,26 +205,91 @@ def extract_text_with_textract(bucket: str, key: str) -> str:
         Extracted text
     """
     try:
-        # Use Textract to detect document text
-        response = textract_client.detect_document_text(
-            Document={
-                'S3Object': {
-                    'Bucket': bucket,
-                    'Name': key
+        # Use Bedrock Data Automation to extract document text
+        # First, we'll use a vision-capable model to extract text from the document
+        
+        # Get the document content
+        document_response = s3_client.get_object(Bucket=bucket, Key=key)
+        document_content = document_response['Body'].read()
+        
+        # Encode document content to base64 for Bedrock
+        import base64
+        document_b64 = base64.b64encode(document_content).decode('utf-8')
+        
+        # Determine the media type based on file extension
+        file_extension = key.lower().split('.')[-1]
+        media_type_map = {
+            'pdf': 'application/pdf',
+            'png': 'image/png',
+            'jpg': 'image/jpeg',
+            'jpeg': 'image/jpeg',
+            'tiff': 'image/tiff',
+            'gif': 'image/gif',
+            'bmp': 'image/bmp'
+        }
+        media_type = media_type_map.get(file_extension, 'application/octet-stream')
+        
+        # Create a prompt for text extraction
+        prompt = """
+        Please extract all text content from this document. 
+        Provide the extracted text in a clean, readable format.
+        Maintain the original structure and formatting where possible.
+        If there are tables, preserve their structure.
+        If there are multiple sections, clearly separate them.
+        
+        Return only the extracted text content, without any additional commentary.
+        """
+        
+        # Prepare the request for Claude 3 with vision capabilities
+        request_body = {
+            "anthropic_version": "bedrock-2023-05-31",
+            "max_tokens": 8000,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": prompt
+                        },
+                        {
+                            "type": "image",
+                            "source": {
+                                "type": "base64",
+                                "media_type": media_type,
+                                "data": document_b64
+                            }
+                        }
+                    ]
                 }
-            }
+            ],
+            "temperature": 0.1,
+            "top_p": 0.9
+        }
+        
+        # Use Claude 3 Sonnet with vision capabilities for document processing
+        model_id = "anthropic.claude-3-sonnet-20240229-v1:0"
+        
+        # Call Bedrock
+        response = bedrock_client.invoke_model(
+            modelId=model_id,
+            body=json.dumps(request_body),
+            contentType='application/json'
         )
         
-        # Extract text from response
-        text = ""
-        for block in response['Blocks']:
-            if block['BlockType'] == 'LINE':
-                text += block['Text'] + '\n'
+        # Parse response
+        response_body = json.loads(response['body'].read())
         
-        return text.strip()
-        
+        if 'content' in response_body and response_body['content']:
+            extracted_text = response_body['content'][0]['text']
+            logger.info(f"Successfully extracted text using Bedrock Data Automation: {len(extracted_text)} characters")
+            return extracted_text.strip()
+        else:
+            logger.warning("Empty response from Bedrock Data Automation")
+            return "Unable to extract text - empty response from Bedrock"
+            
     except Exception as e:
-        logger.error(f"Error with Textract: {str(e)}")
+        logger.error(f"Error with Bedrock Data Automation: {str(e)}")
         # Fallback to direct reading
         return extract_text_directly(bucket, key)
 

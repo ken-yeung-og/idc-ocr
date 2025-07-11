@@ -12,7 +12,7 @@ Document Upload → S3 Event → Lambda Function
                                    ↓
                        Document Metadata Extraction
                                    ↓
-                         Text Extraction (Textract)
+                   AI Text Extraction (Bedrock Data Automation)
                                    ↓
                         AI Summarization (Bedrock)
                                    ↓
@@ -25,7 +25,8 @@ Document Upload → S3 Event → Lambda Function
 
 - **Automatic Processing**: Document upload triggers immediate processing
 - **Multi-Format Support**: Handles PDFs, images, and text documents
-- **OCR Capabilities**: Extracts text from images and scanned documents using AWS Textract
+- **AI-Powered OCR**: Extracts text from images and scanned documents using AWS Bedrock Data Automation
+- **Intelligent Text Extraction**: Uses Claude 3 Sonnet with vision capabilities for advanced document processing
 - **AI Summarization**: Generates intelligent summaries using AWS Bedrock (Claude 3)
 - **Serverless Architecture**: Fully managed AWS services with automatic scaling
 - **Cost Effective**: Pay-per-use pricing model
@@ -68,7 +69,8 @@ idc-ocr/
 - **CloudWatch**: Logging and monitoring
 
 ### Application (Python)
-- **Document Processing**: Multi-format text extraction
+- **Document Processing**: AI-powered multi-format text extraction using Bedrock Data Automation
+- **Vision AI**: Claude 3 Sonnet with vision capabilities for advanced document understanding
 - **AI Integration**: Bedrock Claude 3 for summarization
 - **Data Storage**: Structured storage in DynamoDB
 - **Error Handling**: Comprehensive error handling and logging
@@ -89,8 +91,8 @@ Your AWS user/role needs permissions for:
 - Lambda (create/manage functions)
 - IAM (create/manage roles and policies)
 - CloudWatch (create/manage log groups)
-- Bedrock (invoke models)
-- Textract (document analysis)
+- Bedrock (invoke models, including Claude 3 Sonnet with vision)
+- Bedrock Data Automation (advanced document processing)
 
 ## Installation
 
@@ -217,8 +219,8 @@ inputs = {
 - **S3 Storage**: $0.023/GB/month
 - **Lambda**: $0.0000166667/GB-second
 - **DynamoDB**: $0.25/GB/month (on-demand)
-- **Bedrock**: $0.00025/1K input tokens, $0.00125/1K output tokens
-- **Textract**: $0.0015/page
+- **Bedrock Claude 3 Haiku**: $0.00025/1K input tokens, $0.00125/1K output tokens (summarization)
+- **Bedrock Claude 3 Sonnet**: $0.003/1K input tokens, $0.015/1K output tokens (document processing)
 
 ### Cost Reduction Tips
 
@@ -247,18 +249,24 @@ inputs = {
 ### Common Issues
 
 1. **Bedrock Access Denied**
-   - Enable Bedrock model access in AWS Console
+   - Enable Bedrock model access in AWS Console (Claude 3 Sonnet and Haiku)
    - Check if Bedrock is available in your region
+   - Verify vision capabilities are enabled for Claude 3 Sonnet
 
-2. **Lambda Timeout**
-   - Increase timeout in variables.tf
-   - Optimize document size or processing logic
+2. **Document Processing Errors**
+   - Ensure document size is within Bedrock limits (max 20MB)
+   - Check if document format is supported by vision models
+   - Verify base64 encoding is working correctly
 
-3. **DynamoDB Throttling**
+3. **Lambda Timeout**
+   - Increase timeout in variables.tf (document processing may take longer)
+   - Consider breaking down large documents into smaller chunks
+
+4. **DynamoDB Throttling**
    - Consider provisioned capacity for high volume
    - Implement exponential backoff in code
 
-4. **S3 Permissions**
+5. **S3 Permissions**
    - Verify bucket policy and IAM permissions
    - Check if bucket exists and is accessible
 

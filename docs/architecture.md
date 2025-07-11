@@ -2,7 +2,7 @@
 
 ## Overview
 
-The IDC OCR (Intelligent Document Capture - Optical Character Recognition) system is a serverless document processing solution built on AWS services. It automatically processes documents uploaded to S3, extracts text using OCR, and generates AI-powered summaries.
+The IDC OCR (Intelligent Document Capture - Optical Character Recognition) system is a serverless document processing solution built on AWS services. It automatically processes documents uploaded to S3, extracts text using AWS Bedrock Data Automation with AI-powered vision capabilities, and generates intelligent summaries.
 
 ## System Architecture
 
@@ -26,18 +26,28 @@ The IDC OCR (Intelligent Document Capture - Optical Character Recognition) syste
   - Timeout: 5 minutes
   - Trigger: S3 Object Created events
 
-### 3. Text Extraction Layer
-- **AWS Textract**: OCR service for PDF and image files
+### 3. AI Text Extraction Layer
+- **AWS Bedrock Data Automation**: Advanced AI-powered document processing
+- **Claude 3 Sonnet Vision**: Multi-modal AI for intelligent text extraction
 - **Direct Reading**: For text-based files
 - **Supported Formats**:
-  - PDF documents
+  - PDF documents (processed with AI vision)
   - Image files (PNG, JPG, JPEG, TIFF, GIF, BMP)
   - Text files (TXT, CSV, JSON, etc.)
+- **Advanced Capabilities**:
+  - Table structure preservation
+  - Layout understanding
+  - Multi-language support
+  - Handwriting recognition
 
 ### 4. AI Processing Layer
-- **AWS Bedrock**: AI service for text summarization
-- **Model**: Claude 3 Haiku (configurable)
+- **AWS Bedrock**: Dual-purpose AI service for document processing and summarization
+- **Models**: 
+  - Claude 3 Sonnet (document processing with vision)
+  - Claude 3 Haiku (summarization - configurable)
 - **Features**:
+  - Intelligent document understanding
+  - Advanced text extraction with context
   - Intelligent summarization
   - Key point extraction
   - Structured output
@@ -62,10 +72,10 @@ The IDC OCR (Intelligent Document Capture - Optical Character Recognition) syste
 1. **Upload**: User uploads document to S3 bucket
 2. **Trigger**: S3 event triggers Lambda function
 3. **Metadata**: Lambda extracts document metadata
-4. **Text Extraction**: 
-   - Textract for PDFs/images
+4. **AI Text Extraction**: 
+   - Bedrock Data Automation with Claude 3 Sonnet Vision for PDFs/images
    - Direct reading for text files
-5. **AI Processing**: Bedrock generates document summary
+5. **AI Processing**: Bedrock generates intelligent document summary
 6. **Storage**: Results stored in DynamoDB
 7. **Logging**: All operations logged to CloudWatch
 
@@ -76,7 +86,7 @@ Document Upload → S3 Event → Lambda Function
                                     ↓
                         Document Metadata Extraction
                                     ↓
-                          Text Extraction (Textract)
+                   AI Text Extraction (Bedrock Data Automation)
                                     ↓
                          AI Summarization (Bedrock)
                                     ↓
@@ -98,18 +108,21 @@ Document Upload → S3 Event → Lambda Function
 
 - **Throughput**: Scales automatically with demand
 - **Latency**: 
-  - Small documents: 30-60 seconds
-  - Large documents: 2-5 minutes
-- **Reliability**: Built-in retry mechanisms
+  - Small documents: 45-90 seconds (enhanced AI processing)
+  - Large documents: 3-7 minutes (comprehensive analysis)
+- **Reliability**: Built-in retry mechanisms with intelligent fallbacks
 - **Availability**: 99.9% uptime (AWS SLA)
+- **Accuracy**: Enhanced accuracy with AI-powered document understanding
 
 ## Cost Optimization
 
 - **S3**: Lifecycle policies for archival
-- **Lambda**: Right-sized memory allocation
+- **Lambda**: Right-sized memory allocation (may need higher for AI processing)
 - **DynamoDB**: On-demand billing
-- **Textract**: Efficient document processing
-- **Bedrock**: Optimized prompt engineering
+- **Bedrock**: Optimized prompt engineering and model selection
+  - Claude 3 Sonnet for document processing (higher accuracy)
+  - Claude 3 Haiku for summarization (cost-effective)
+- **Document Size**: Optimize document size before processing to reduce token usage
 
 ## Security Architecture
 
@@ -128,8 +141,10 @@ Document Upload → S3 Event → Lambda Function
 
 ## Future Enhancements
 
-- **Multi-language Support**: Additional OCR languages
-- **Advanced Analytics**: Document classification
-- **Real-time Processing**: Stream processing
-- **API Gateway**: RESTful API endpoints
-- **Machine Learning**: Custom model training 
+- **Enhanced Multi-language Support**: Leverage Claude 3's multilingual capabilities
+- **Advanced Analytics**: Document classification and entity extraction
+- **Real-time Processing**: Stream processing for high-volume scenarios
+- **API Gateway**: RESTful API endpoints for direct integration
+- **Custom AI Models**: Fine-tuning for specific document types
+- **Structured Data Extraction**: Enhanced table and form processing
+- **Document Comparison**: AI-powered document similarity analysis 
