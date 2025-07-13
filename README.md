@@ -36,9 +36,16 @@ Document Upload → S3 Event → Lambda Function
 
 ```
 idc-ocr/
+├── .github/                      # GitHub Actions workflows
+│   └── workflows/                # CI/CD pipeline
+│       ├── deploy.yml            # Main deployment workflow
+│       ├── destroy.yml           # Infrastructure cleanup
+│       └── test.yml              # Automated testing
 ├── docs/                          # Documentation and diagrams
 │   ├── idp-ocr.jpeg              # System architecture diagram
-│   └── architecture.md           # Detailed architecture documentation
+│   ├── architecture.md           # Detailed architecture documentation
+│   ├── GITHUB_ACTIONS_SETUP.md   # CI/CD setup guide
+│   └── TEXTRACT_TO_BEDROCK_MIGRATION.md # Migration documentation
 ├── infra/                         # Infrastructure as Code
 │   ├── terragrunt.hcl            # Main Terragrunt configuration
 │   └── terraform/                # Terraform modules
@@ -117,6 +124,15 @@ Your AWS user/role needs permissions for:
    ```
 
 4. **Deploy the infrastructure**
+
+   **Option A: Using GitHub Actions (Recommended)**
+   ```bash
+   # 1. Set up GitHub secrets (see docs/GITHUB_ACTIONS_SETUP.md)
+   # 2. Push to main branch or run workflow manually
+   git push origin main
+   ```
+
+   **Option B: Manual Deployment**
    ```bash
    # Make scripts executable (Linux/Mac)
    chmod +x scripts/deploy.sh scripts/destroy.sh scripts/test.sh
@@ -124,6 +140,43 @@ Your AWS user/role needs permissions for:
    # Deploy the system
    ./scripts/deploy.sh
    ```
+
+## CI/CD Pipeline
+
+The system includes a comprehensive GitHub Actions CI/CD pipeline for automated deployment and testing.
+
+### Quick Setup
+
+1. **Configure GitHub Secrets**
+   ```bash
+   # Repository Settings → Secrets and variables → Actions
+   AWS_ACCESS_KEY_ID=your_access_key
+   AWS_SECRET_ACCESS_KEY=your_secret_key
+   AWS_SESSION_TOKEN=your_session_token  # if using temporary credentials
+   ```
+
+2. **Deploy via GitHub Actions**
+   ```bash
+   # Push to main branch for automatic deployment
+   git push origin main
+   
+   # Or manually trigger deployment
+   # Go to Actions → "Deploy IDC OCR System" → Run workflow
+   ```
+
+3. **Test the System**
+   ```bash
+   # Manual testing
+   # Go to Actions → "Test IDC OCR System" → Run workflow
+   ```
+
+### Available Workflows
+
+- **Deploy Workflow**: Automated deployment on push to main
+- **Test Workflow**: Comprehensive system testing with daily schedules
+- **Destroy Workflow**: Safe infrastructure cleanup with confirmation
+
+📖 **Complete Setup Guide**: [docs/GITHUB_ACTIONS_SETUP.md](docs/GITHUB_ACTIONS_SETUP.md)
 
 ## Usage
 
