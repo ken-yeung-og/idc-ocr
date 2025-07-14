@@ -43,7 +43,7 @@ variable "lambda_function_name" {
 variable "bedrock_model_id" {
   description = "Bedrock model ID for document summarization (Data automation uses Claude 3 Sonnet)"
   type        = string
-  default     = "anthropic.claude-3-haiku-20240307-v1:0"
+  default     = "anthropic.claude-3-sonnet-20240229-v1:0"
 }
 
 variable "lambda_timeout" {

@@ -1,0 +1,11 @@
+# Terraform generated files
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+
+# Lambda deployment package
+lambda.zip
+
+# Terragrunt cache
+.terragrunt-cache/ 

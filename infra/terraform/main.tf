@@ -71,6 +71,7 @@ resource "aws_dynamodb_table" "document_table" {
   global_secondary_index {
     name     = "UploadTimestampIndex"
     hash_key = "upload_timestamp"
+    projection_type = "ALL"
   }
 
   tags = merge(var.common_tags, {
@@ -136,30 +137,52 @@ resource "aws_iam_role_policy" "lambda_policy" {
           aws_dynamodb_table.document_table.arn,
           "${aws_dynamodb_table.document_table.arn}/index/*"
         ]
-      },
-      {
-        Effect = "Allow"
-        Action = [
-          "bedrock:InvokeModel",
-          "bedrock:InvokeModelWithResponseStream",
-          "bedrock:GetFoundationModel",
-          "bedrock:ListFoundationModels"
-        ]
-        Resource = [
-          "arn:aws:bedrock:${var.aws_region}::foundation-model/${var.bedrock_model_id}",
-          "arn:aws:bedrock:${var.aws_region}::foundation-model/*",
-          "arn:aws:bedrock:${var.aws_region}::foundation-model/anthropic.claude-3-sonnet-20240229-v1:0"
-        ]
       }
     ]
   })
 }
 
+# IAM policy specifically for Bedrock permissions
+resource "aws_iam_role_policy" "lambda_bedrock_policy" {
+  name = "${var.project_name}-lambda-bedrock-policy-${var.environment}"
+  role = aws_iam_role.lambda_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "bedrock:InvokeModel",
+          "bedrock:InvokeModelWithResponseStream"
+        ]
+        Resource = [
+          "arn:aws:bedrock:${var.aws_region}::foundation-model/${var.bedrock_model_id}",
+          "arn:aws:bedrock:${var.aws_region}::foundation-model/anthropic.claude-3-haiku-20240307-v1:0"
+        ]
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "bedrock:GetFoundationModel",
+          "bedrock:ListFoundationModels"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+# Check if Bedrock model is available
+data "aws_bedrock_foundation_model" "claude_model" {
+  model_id = var.bedrock_model_id
+}
+
 # Create Lambda deployment package
 data "archive_file" "lambda_zip" {
   type        = "zip"
-  source_dir  = "${path.module}/../../src/lambda/document_processor"
-  output_path = "${path.module}/../../src/lambda/document_processor.zip"
+  source_dir  = "${path.module}/lambda"
+  output_path = "${path.module}/lambda.zip"
 }
 
 # Lambda function
@@ -187,6 +210,7 @@ resource "aws_lambda_function" "document_processor" {
 
   depends_on = [
     aws_iam_role_policy.lambda_policy,
+    aws_iam_role_policy.lambda_bedrock_policy,
     aws_cloudwatch_log_group.lambda_log_group
   ]
 }
